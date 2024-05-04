@@ -8,14 +8,15 @@ datasource db {
 }
 
 model Product {
-  sku        String   @id 
+  sku        String   @id @unique
   title      String
-  stocks     Stock[]   
+  stocks     Stock? @relation(fields: [stockId], references: [uuid])  
+  stockId    String?
   categories ProductCategory[] 
 }
 
 model Category {
-  slug   String  @id 
+  slug   String  @id @unique 
   title  String
   products ProductCategory[]
 }
@@ -31,6 +32,5 @@ model ProductCategory {
   categoryId String   
   product   Product  @relation(fields: [productId], references: [sku])
   category  Category @relation(fields: [categoryId], references: [slug])
-
-  @@unique([productId, categoryId])
+  @@id([productId, categoryId])
 }

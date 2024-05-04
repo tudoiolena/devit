@@ -2,33 +2,46 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const countAllProducts = async () => {
+export const countAllProducts = async (): Promise<number> => {
   const productsCount = await prisma.product.count();
   return productsCount;
 };
 
-export const countAllProductsOnStock = async (uuid: string) => {
+export const countAllProductsOnStock = async (
+  uuid: string
+): Promise<number> => {
   const productsCount = await prisma.stock.findUnique({
     where: { uuid },
     select: { products: { select: { sku: true } } },
   });
-  return productsCount?.products.length;
+  if (productsCount && productsCount.products) {
+    return productsCount.products.length;
+  } else {
+    throw new Error("There are no created products.");
+  }
 };
 
-export const countProduct = async (sku: string) => {
+export const countProduct = async (sku: string): Promise<number> => {
   const productCount = await prisma.product.count({ where: { sku } });
   return productCount;
 };
 
-export const countProductOnStock = async (uuid: string, sku: string) => {
-  const productCount = await prisma.stock.findUnique({
+export const countProductOnStock = async (
+  uuid: string,
+  sku: string
+): Promise<number> => {
+  const productsCount = await prisma.stock.findUnique({
     where: { uuid },
     select: { products: { where: { sku } } },
   });
-  return productCount?.products.length;
+  if (productsCount && productsCount.products) {
+    return productsCount.products.length;
+  } else {
+    throw new Error("There is no such a product on selected stock.");
+  }
 };
 
-export const countProductByCategory = async (slug: string) => {
+export const countProductByCategory = async (slug: string): Promise<number> => {
   const productCount = await prisma.productCategory.count({
     where: { categoryId: slug },
   });
@@ -38,8 +51,8 @@ export const countProductByCategory = async (slug: string) => {
 export const countProductOnStockByCategory = async (
   uuid: string,
   slug: string
-) => {
-  const productCount = await prisma.stock.findUnique({
+): Promise<number> => {
+  const productsCount = await prisma.stock.findUnique({
     where: { uuid },
     select: {
       products: {
@@ -49,7 +62,13 @@ export const countProductOnStockByCategory = async (
       },
     },
   });
-  return productCount?.products.length;
+  if (productsCount && productsCount.products) {
+    return productsCount?.products.length;
+  } else {
+    throw new Error(
+      "There are no products on selected stock by this category."
+    );
+  }
 };
 
 async function main() {
@@ -80,6 +99,10 @@ async function main() {
       {
         sku: "SKU004",
         title: "Sport Watches",
+      },
+      {
+        sku: "SKU005",
+        title: "Phone",
       },
     ],
   });
@@ -117,6 +140,10 @@ async function main() {
         productId: "SKU004",
         categoryId: "furnit",
       },
+      {
+        productId: "SKU005",
+        categoryId: "elect",
+      },
     ],
   });
 
@@ -135,7 +162,7 @@ async function main() {
     where: { uuid: "stock-2" },
     data: {
       products: {
-        connect: [{ sku: "SKU002" }],
+        connect: [{ sku: "SKU002" }, { sku: "SKU005" }],
       },
     },
   });
@@ -146,31 +173,31 @@ async function main() {
   console.log("🎉 *** Mock data inserted successfully. *** 🎉 ");
 
   const totalProducts = await countAllProducts();
-  console.log("Total products:", totalProducts);
+  console.log("Total products: ", totalProducts);
 
   const totalCategoriesStock1 = await countAllProductsOnStock("stock-1");
-  console.log(`Total products on stock "Warehouse A"`, totalCategoriesStock1);
+  console.log(`Total products on stock "Warehouse A": `, totalCategoriesStock1);
 
   const totalCategoriesStock2 = await countAllProductsOnStock("stock-2");
-  console.log(`Total products on stock "Warehouse B"`, totalCategoriesStock2);
+  console.log(`Total products on stock "Warehouse B": `, totalCategoriesStock2);
 
   const productAmount = await countProduct("SKU001");
   console.log(`Amount of product "Laptop": `, productAmount);
 
   const produnctAmountOnStock = await countProductOnStock("stock-1", "SKU001");
   console.log(
-    `Amount of product "Laptop" on stock "WarehouseA": `,
+    `Amount of product "Laptop" on stock "Warehouse A": `,
     produnctAmountOnStock
   );
 
   const productsInCategoryCloth = await countProductByCategory("cloth");
-  console.log(`Products in category "Clothes"`, productsInCategoryCloth);
+  console.log(`Products in category "Clothes": `, productsInCategoryCloth);
 
   const productsInCategoryElectr = await countProductByCategory("elect");
-  console.log(`Products in category "Electronics"`, productsInCategoryElectr);
+  console.log(`Products in category "Electronics" `, productsInCategoryElectr);
 
   const productsInCategoryFurnit = await countProductByCategory("furnit");
-  console.log(`Products in category "Furniture"`, productsInCategoryFurnit);
+  console.log(`Products in category "Furniture" `, productsInCategoryFurnit);
 }
 
 main()
