@@ -3,7 +3,7 @@ import { FC, ReactNode, useEffect, useState } from "react";
 interface IProps {
   open: boolean;
   onClose: () => void;
-  disableGlobalScroll: boolean;
+  disableGlobalScroll?: boolean;
   children: ReactNode;
 }
 
