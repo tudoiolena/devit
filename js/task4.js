@@ -56,4 +56,4 @@ const mapRules = [
   ["age", "a"],
 ];
 
-testData3.map(mapper(mapRules));
+console.log(testData3.map(mapper(mapRules)));

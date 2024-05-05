@@ -22,6 +22,6 @@ const span = document.createElement("span");
 p.appendChild(span);
 div.appendChild(p);
 
-nodeChildCount(div);
-nodeChildCount(div, 1);
-nodeChildCount(div, 2);
+console.log(nodeChildCount(div));
+console.log(nodeChildCount(div, 1));
+console.log(nodeChildCount(div, 2));
